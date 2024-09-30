@@ -1,19 +1,41 @@
 import { useEffect, useState } from 'react'
 import './index.css'
-import { FlexBox } from '../common/Layout'
+import { FlexBox } from './common/Layout'
 import MainMenu from './MainMenu'
 import Round from './Round'
 import { GAME_STATUS } from './constants'
 import { SocketService } from './socketService'
 import { v4 as uuidv4 } from 'uuid'
-import { isObject } from 'lodash'
+import { cloneDeep, isObject, zipObject } from 'lodash'
+import Lobby from './Lobby'
+import { useExtendedState } from './common/utils/hooks'
+
+const useTimestampState = (initialState) => {
+  const state = useExtendedState(initialState)
+  const stateTimestamp = useExtendedState(0)
+  return [...state, ...stateTimestamp]
+}
 
 export default function Game() {
-  const [playerId, setPlayerId] = useState(null)
-  const [gameState, setGameState] = useState({})
-  const [playerStates, setPlayerStates] = useState({})
-  const [teamStates, setTeamStates] = useState({})
-  const [roundState, setRoundState] = useState({})
+  const [playerId, setPlayerId, getPlayerId] = useExtendedState(null)
+  // const [gameState, setGameState, getGameState] = useTimestampState({})
+  // const [playerStates, setPlayerStates, getPlayerStates] = useTimestampState({})
+  // const [teamStates, setTeamStates, getTeamStates] = useTimestampState({})
+  // const [roundState, setRoundState, getRoundState] = useTimestampState({})
+
+  const stateKeys = ['gameState', 'playerStates', 'teamStates', 'roundState']
+  const stateHandler = stateKeys.reduce((acc, key) => {
+    acc[key] = zipObject(
+      ['state', 'setState', 'getState', 'timestamp', 'setTimestamp', 'getTimestamp'],
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      useTimestampState({}),
+    )
+    return acc
+  }, {})
+  const [gameState, playerStates, teamStates, roundState] = stateKeys.map(
+    (stateKey) => stateHandler[stateKey].state,
+  )
+  const stateProps = { gameState, playerStates, teamStates, roundState }
   const { gameStatus } = gameState || {}
 
   useEffect(() => {
@@ -23,37 +45,46 @@ export default function Game() {
 
   useEffect(() => {
     SocketService.connect()
-    const sessionStates = {
-      gameState: [gameState, setGameState],
-      playerStates: [playerStates, setPlayerStates],
-      teamStates: [teamStates, setTeamStates],
-      roundState: [roundState, setRoundState],
-    }
     SocketService.socket.on(`stateUpdate`, (newState) => {
-      Object.keys(sessionStates).forEach((stateKey) => {
+      // console.log('NEW STATE:', newState)
+      const newTimestamp = newState?.timestamp
+      if (!newTimestamp) return
+      stateKeys.forEach((stateKey) => {
         if (isObject(newState[stateKey])) {
-          sessionStates[stateKey][1](newState[stateKey])
-          console.log(`Updated ${stateKey}:`, sessionStates[stateKey][0])
+          stateHandler[stateKey].setTimestamp((prevTimestamp) => {
+            let res = prevTimestamp
+            if (prevTimestamp < newTimestamp) {
+              res = newTimestamp
+
+              stateHandler[stateKey].setState(newState[stateKey])
+            }
+            return res
+          })
         }
       })
+      // ;(async () =>
+      //   console.log(
+      //     'COMPLETE STATE:',
+      //     Object.fromEntries(
+      //       await Promise.all(
+      //         Object.entries(stateHandler).map(async ([key, fn]) => [key, await fn.getState()]),
+      //       ),
+      //     ),
+      //   ))()
     })
-    // Object.keys(sessionStates).forEach((stateKey) =>
-    //   SocketService.socket.on(`${stateKey}Update`, (newState) => {
-    //     sessionStates[stateKey][1](newState)
-    //     console.log('Updated game state:', sessionStates[stateKey][0])
-    //   }),
-    // )
 
     return () => {
       SocketService.socket.off(`stateUpdate`)
-      // Object.keys(sessionStates).forEach((stateKey) =>
-      //   SocketService.socket.off(`${stateKey}Update`),
-      // )
     }
   }, [])
 
+  useEffect(() => {
+    console.log(cloneDeep({ gameState, playerStates, teamStates, roundState }))
+  }, [gameState, playerStates, teamStates, roundState])
+
   return (
     <FlexBox
+      id='game'
       fp
       sx={{
         w: '100vw',
@@ -68,9 +99,11 @@ export default function Game() {
       }}
     >
       {gameStatus === GAME_STATUS.MAIN_MENU ? (
-        <MainMenu {...{ playerId, gameState, playerStates, teamStates, roundState }} />
+        <MainMenu {...{ playerId, ...stateProps }} />
+      ) : gameStatus === GAME_STATUS.LOBBY ? (
+        <Lobby {...{ playerId, ...stateProps }} />
       ) : gameStatus === GAME_STATUS.ROUND ? (
-        <Round {...{ playerId, gameState, playerStates, teamStates, roundState }} />
+        <Round {...{ playerId, ...stateProps }} />
       ) : null}
     </FlexBox>
   )

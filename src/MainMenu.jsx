@@ -1,6 +1,6 @@
 import { Button, TextField, Typography } from '@mui/material'
 import './index.css'
-import { FlexBox, FlexRow } from '../common/Layout'
+import { FlexBox, FlexRow } from './common/Layout'
 import { GAME_STATUS } from './constants'
 import { SocketService } from './socketService'
 import { useExtendedState } from './common/utils/hooks'
@@ -50,7 +50,7 @@ export default function MainMenu({ playerId, gameState, playerStates, teamStates
         <FlexRow
           onClick={async () =>
             SocketService.sendServerMessage('joinLobby', [
-              { lobbyId: getLobbyId(), playerId, playerName: await getPlayerName() },
+              { lobbyId: await getLobbyId(), playerId, playerName: await getPlayerName() },
             ])
           }
         >

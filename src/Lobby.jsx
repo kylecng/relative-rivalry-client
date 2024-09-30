@@ -1,15 +1,16 @@
 import { Button, TextField, Typography } from '@mui/material'
 import './index.css'
-import { FlexBox, FlexRow, FlexCol } from '../common/Layout'
+import { FlexBox, FlexRow, FlexCol } from './common/Layout'
 import { GAME_STATUS, NUM_TEAMS } from './constants'
-import { Socket, SocketService } from './socketService'
+import { SocketService } from './socketService'
 import { useExtendedState } from './common/utils/hooks'
 
 export default function Lobby({ playerId, gameState, playerStates, teamStates, roundState }) {
   const [playerName, setPlayerName, getPlayerName] = useExtendedState('')
 
   return (
-    <FlexBox
+    <FlexCol
+      id='lobby'
       fp
       sx={{
         w: '100vw',
@@ -23,6 +24,8 @@ export default function Lobby({ playerId, gameState, playerStates, teamStates, r
         zIndex: 0,
       }}
     >
+      <Typography variant='h2'>Room Code:</Typography>
+      <Typography variant='h2'>{gameState?.lobbyId || ''}</Typography>
       <FlexRow>
         {Object.entries(teamStates).map(([teamId, team], index) => (
           <FlexCol key={teamId}>
@@ -38,11 +41,11 @@ export default function Lobby({ playerId, gameState, playerStates, teamStates, r
       </FlexRow>
 
       <Button>
-        <FlexRow onClick={async () => SocketService.sendServerMessage('startGame')}>
+        <FlexRow onClick={async () => SocketService.sendServerMessage('startNextRound')}>
           {/* <StyledIcon icon={IoArrowBack} /> */}
           <Typography>Start Game</Typography>
         </FlexRow>
       </Button>
-    </FlexBox>
+    </FlexCol>
   )
 }

@@ -1,7 +1,7 @@
 import { Box } from '@mui/material'
 import { merge } from 'lodash'
 import { cloneElement, isValidElement } from 'react'
-import { tryReturn } from './utils'
+import { tryReturn } from '../utils'
 
 export const StyledIcon = ({ icon, children, fontSize, size, color, ...restProps }) => {
   const props = { ...merge({ sx: { fontSize: fontSize || size || undefined, color } }, restProps) }

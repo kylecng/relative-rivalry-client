@@ -1,4 +1,4 @@
-import { isError, isNumber, isObject, isString, toString } from 'lodash'
+import { chain, isError, isNumber, isObject, isString, toString } from 'lodash'
 
 export const IS_DEV_MODE = import.meta.env.DEV
 
@@ -123,3 +123,15 @@ export const toCamelCase = (text) => {
     })
     .join('')
 }
+
+export const findTeamByPlayer = (teamStates, playerId) =>
+  Object.keys(teamStates).find((key) => {
+    return teamStates[key].players.includes(playerId)
+  })
+
+export const getScoresArray = (teamStates) =>
+  chain(teamStates)
+    .toPairs()
+    .sortBy(([teamId]) => teamId)
+    .map(([teamId, teamData]) => ({ id: teamId, score: teamData.score }))
+    .value()

@@ -15,7 +15,8 @@ class SocketService {
       }),
     )
   }
-  sendServerMessage(action, params, sendResponse) {
+  sendServerMessage(action, params) {
+    console.log('sendServerMessage', { action, params })
     // const messageId = uuidv4()
     // this.awaitingResp[messageId] = { resolve: sendResponse }
 
@@ -32,7 +33,7 @@ class SocketService {
   }
 
   connect() {
-    this.socket = io('socket://localhost:3000')
+    this.socket = io('http://localhost:3000')
 
     this.socket.on('connect', () => {
       console.log('Connected to the server')

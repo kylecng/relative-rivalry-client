@@ -1,10 +1,10 @@
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
-import theme from '../common/theme'
+import theme from './common/theme'
 import { ThemeProvider } from '@mui/material/styles'
 import './index.css'
-import { FlexRow } from '../common/Layout'
+import { FlexRow } from './common/Layout'
 import { SnackbarProvider } from 'notistack'
 import Game from './Game'
 
