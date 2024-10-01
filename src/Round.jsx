@@ -12,6 +12,7 @@ import { toastMessage } from './common/Toast'
 import { cssRgba } from './common/utils/color'
 import { SocketService } from './socketService'
 import { PASS_OR_PLAY, ROUND_STATUS } from './constants'
+import StyledButton from './common/Button'
 
 const glow = (color) => {
   return {
@@ -298,25 +299,25 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
   )
 
   const renderPassOrPlayButtons = () => (
-    <FlexRow fw>
+    <FlexRow fp>
       {Object.entries(PASS_OR_PLAY).map(([key, value]) => (
-        <Button
+        <StyledButton
           key={key}
           onClick={async () =>
             SocketService.sendServerMessage('selectPassOrPlay', [{ passOrPlay: value }])
           }
         >
           {value}
-        </Button>
+        </StyledButton>
       ))}
     </FlexRow>
   )
 
   const renderNextRoundButton = () => (
-    <FlexRow fw>
-      <Button onClick={async () => SocketService.sendServerMessage('startNextRound')}>
+    <FlexRow fp>
+      <StyledButton onClick={async () => SocketService.sendServerMessage('startNextRound')}>
         Next Round
-      </Button>
+      </StyledButton>
     </FlexRow>
   )
 
@@ -335,6 +336,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     <SnackbarProvider maxSnack={3}>
       <ThemeProvider theme={theme}>
         <FlexBox
+          id='round'
           fp
           sx={{
             w: '100vw',
@@ -352,14 +354,11 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
           <FlexCol fp p={20} jc='start' g={5} zIndex={999}>
             <FlexBox w={0.75} f='0 0 10%'>
               {renderStrikes()}
-              {roundStatus === ROUND_STATUS.PASS_OR_PLAY && faceoffWinner === teamId
-                ? renderPassOrPlayButtons()
-                : roundStatus === ROUND_STATUS.WAITING_FOR_NEXT
-                ? renderNextRoundButton()
-                : null}
-              <Button onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}>
+              <StyledButton
+                onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}
+              >
                 testRevealAllAnswers
-              </Button>
+              </StyledButton>
             </FlexBox>
             <FlexRow fh f='0 0 10%' pos='relative'>
               {renderScore(roundState?.points || 0)}
@@ -393,6 +392,18 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
             </FlexRow>
             <FlexRow w={0.75} f='0 0 10%'>
               {renderInput()}
+            </FlexRow>
+            <FlexRow w={0.75} f='0 0 10%'>
+              {roundStatus === ROUND_STATUS.PASS_OR_PLAY && faceoffWinner === teamId
+                ? renderPassOrPlayButtons()
+                : roundStatus === ROUND_STATUS.WAITING_FOR_NEXT
+                ? renderNextRoundButton()
+                : null}
+              {/* <StyledButton
+                onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}
+              >
+                testRevealAllAnswers
+              </StyledButton> */}
             </FlexRow>
           </FlexCol>
         </FlexBox>

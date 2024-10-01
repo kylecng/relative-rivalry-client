@@ -9,7 +9,8 @@ let theme = createTheme({
     primary: {
       // main: '#0080FF',
       // main: '#25EBE6',
-      main: '#0F2C88',
+      main: '#2E6ED5',
+      dark: '#0F2C88',
       contrastText: '#000000',
     },
     secondary: {

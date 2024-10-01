@@ -25,13 +25,9 @@ export default function Main() {
           }}
         >
           <Router>
-            <FlexRow fp g={2.5} p={3} sx={{ overflow: 'hidden' }}>
-              <FlexRow fh flexible g={3}>
-                <Routes>
-                  <Route path='/' element={<Game />} />
-                </Routes>
-              </FlexRow>
-            </FlexRow>
+            <Routes>
+              <Route path='/' element={<Game />} />
+            </Routes>
           </Router>
         </FlexRow>
       </ThemeProvider>

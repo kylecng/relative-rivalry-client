@@ -124,10 +124,12 @@ export const toCamelCase = (text) => {
     .join('')
 }
 
-export const findTeamByPlayer = (teamStates, playerId) =>
-  Object.keys(teamStates).find((key) => {
+export const findTeamByPlayer = (teamStates, playerId) => {
+  const teamId = Object.keys(teamStates).find((key) => {
     return teamStates[key].players.includes(playerId)
   })
+  return teamId
+}
 
 export const getScoresArray = (teamStates) =>
   chain(teamStates)
