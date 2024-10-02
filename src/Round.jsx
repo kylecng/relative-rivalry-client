@@ -2,7 +2,7 @@ import { Fragment, StrictMode, useEffect, useRef, useState } from 'react'
 import theme from './common/theme'
 import { ThemeProvider } from '@mui/material/styles'
 import { Button, CircularProgress, TextField, Typography } from '@mui/material'
-import { FlexBox, FlexCol, FlexRow } from './common/Layout'
+import { FlexBox, FlexCol, FlexRow, FlexSquare } from './common/Layout'
 import { SnackbarProvider } from 'notistack'
 import { isNil } from 'lodash'
 import { devErr, findTeamByPlayer, getErrStr, getScoresArray, isValidNumber } from './utils'
@@ -129,6 +129,11 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         opacity: 0,
         transition: 'opacity 0.5s ease-in-out',
         ...(isShowStrikes ? { opacity: 1 } : {}),
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10,
       }}
       g={2}
     >
@@ -153,20 +158,18 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
   )
 
   const renderScore = (score) => (
-    <FlexBox
-      fw
-      p={2}
+    <FlexSquare
       sx={{
         bgcolor: 'secondary.main',
         br: 3,
-        ar: '1',
         boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
+        p: 2,
       }}
     >
       <FlexBox fp bgcolor='#2E6ED5' br={2}>
         <Typography variant='h1'>{score}</Typography>
       </FlexBox>
-    </FlexBox>
+    </FlexSquare>
   )
 
   const renderAnswerGrid = () => (
@@ -272,11 +275,10 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
           inputProps={{
             style: {
               fontSize: '4em',
-              disabled: roundState?.isAnsweringLocked || teamStates?.[teamId]?.isAnsweringLocked,
             },
           }}
           fullWidth
-          disabled={roundState?.isAnsweringLocked || teamStates?.[teamId]?.isAnsweringLocked}
+          // disabled={roundState?.isAnsweringLocked || teamStates?.[teamId]?.isAnsweringLocked}
         />
         <Button
           type='submit'
@@ -320,10 +322,27 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
       </StyledButton>
     </FlexRow>
   )
-
-  const renderTeamPlayers = (teamId) => (
+  const renderTeamInput = (someTeamId) => (
     <FlexCol>
-      {(teamStates?.[teamId]?.players || [])
+      {([
+        ROUND_STATUS.VERIFYING_FACEOFF_ANSWER,
+        ROUND_STATUS.VERIFYING_MAIN_ANSWER,
+        ROUND_STATUS.VERIFYING_STEAL_ANSWER,
+      ].includes(roundStatus) &&
+        turn === someTeamId &&
+        teamStates?.[someTeamId]?.input && (
+          <FlexRow g={2}>
+            <Typography variant='h2'>{teamStates?.[someTeamId]?.input || ' '}</Typography>
+            <CircularProgress />
+          </FlexRow>
+        )) ||
+        ' '}
+    </FlexCol>
+  )
+
+  const renderTeamPlayers = (someTeamId) => (
+    <FlexCol>
+      {(teamStates?.[someTeamId]?.players || [])
         .map((teamPlayerId) => teamPlayerId)
         .filter((teamPlayerId) => teamPlayerId in playerStates)
         .map((teamPlayerId) => (
@@ -351,21 +370,21 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
           }}
         >
           {/* {renderOval()} */}
-          <FlexCol fp p={20} jc='start' g={5} zIndex={999}>
-            <FlexBox w={0.75} f='0 0 10%'>
+          <FlexCol fp jc='start' g={5} zIndex={999}>
+            <FlexRow w={0.75} f='0 0 10%'>
               {renderStrikes()}
               <StyledButton
                 onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}
               >
                 testRevealAllAnswers
               </StyledButton>
-            </FlexBox>
-            <FlexRow fh f='0 0 10%' pos='relative'>
+            </FlexRow>
+            <FlexRow fw f='0 0 10%'>
               {renderScore(roundState?.points || 0)}
             </FlexRow>
 
             <FlexRow fw f='0 0 10%'>
-              {isFetchingQuestion ? (
+              {roundStatus === ROUND_STATUS.WAITING_FOR_QUESTION ? (
                 <FlexCol fp>
                   <CircularProgress />
                 </FlexCol>
@@ -374,8 +393,9 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
               )}
             </FlexRow>
             <FlexRow fw f='0 0 60%' g={5}>
-              <FlexBox fh f='0 0 15%' pos='relative'>
+              <FlexBox fh f='0 0 15%'>
                 <FlexCol fp>
+                  {renderTeamInput(scores?.[0]?.id)}
                   {renderScore(scores?.[0]?.score || 0)}
                   {renderTeamPlayers(scores?.[0]?.id)}
                 </FlexCol>
@@ -383,8 +403,9 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
               <FlexBox fh f='0 0 70%'>
                 {renderAnswerGrid()}
               </FlexBox>
-              <FlexBox fh f='0 0 15%' pos='relative'>
+              <FlexBox fh f='0 0 15%'>
                 <FlexCol fp>
+                  {renderTeamInput(scores?.[1]?.id)}
                   {renderScore(scores?.[1]?.score || 0)}
                   {renderTeamPlayers(scores?.[1]?.id)}
                 </FlexCol>

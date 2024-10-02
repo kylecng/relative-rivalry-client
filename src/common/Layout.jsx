@@ -1,5 +1,6 @@
 import { Box, Paper, Divider } from '@mui/material'
 import { omitBy, isUndefined, pick, omit, merge, mapKeys } from 'lodash'
+import { useEffect, useRef, useState } from 'react'
 
 const PROP_SHORTCUTS = {
   fd: 'flexDirection',
@@ -121,5 +122,55 @@ export const FlexDivider = ({ children, color, width, ...restProps }) => {
     >
       {children}
     </Divider>
+  )
+}
+
+export const FlexSquare = ({ children, sx, ...props }) => {
+  const [size, setSize] = useState(0)
+  const parentRef = useRef(null)
+
+  useEffect(() => {
+    const resizeHandler = () => {
+      if (parentRef.current) {
+        const { clientWidth, clientHeight } = parentRef.current
+        const minSize = Math.min(clientWidth, clientHeight)
+        setSize(minSize)
+      }
+    }
+
+    // Set initial size
+    resizeHandler()
+
+    // Add event listener to handle window resizing
+    window.addEventListener('resize', resizeHandler)
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('resize', resizeHandler)
+    }
+  }, [])
+
+  return (
+    <div ref={parentRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <FlexBox
+        {...merge(
+          {
+            sx: {
+              w: `${size}px`,
+              h: `${size}px`,
+              // backgroundColor: 'lightcoral',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)', // Centering the square
+              ...sx,
+            },
+          },
+          { ...props },
+        )}
+      >
+        {children}
+      </FlexBox>
+    </div>
   )
 }
