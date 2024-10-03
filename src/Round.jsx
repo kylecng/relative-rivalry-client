@@ -13,6 +13,7 @@ import { cssRgba } from './common/utils/color'
 import { SocketService } from './socketService'
 import { PASS_OR_PLAY, ROUND_STATUS } from './constants'
 import StyledButton from './common/Button'
+import RevealText from './common/RevealText'
 
 const glow = (color) => {
   return {
@@ -389,7 +390,9 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
                   <CircularProgress />
                 </FlexCol>
               ) : (
-                question
+                <Typography variant='h2'>
+                  <RevealText text={question} />
+                </Typography>
               )}
             </FlexRow>
             <FlexRow fw f='0 0 60%' g={5}>
