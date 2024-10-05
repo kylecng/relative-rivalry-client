@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 
-export default function RevealText({ text, delay = 50 }) {
+export default function RevealText({ text = '', delay = 10 }) {
   const [index, setIndex] = useState(0) // State variable to keep track of the current index
 
   useEffect(() => {

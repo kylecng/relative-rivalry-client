@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles'
+import { createTheme, responsiveFontSizes } from '@mui/material/styles'
 import { merge, fromPairs, clone, mapValues } from 'lodash'
 import 'typeface-inter'
 
@@ -180,5 +180,7 @@ theme = createTheme(theme, {
     },
   },
 })
+
+// theme = responsiveFontSizes(theme)
 
 export default theme

@@ -1,7 +1,7 @@
 import { Fragment, StrictMode, useEffect, useRef, useState } from 'react'
 import theme from './common/theme'
 import { ThemeProvider } from '@mui/material/styles'
-import { Button, CircularProgress, TextField, Typography } from '@mui/material'
+import { Button, CircularProgress, TextField, Typography, useMediaQuery } from '@mui/material'
 import { FlexBox, FlexCol, FlexRow, FlexSquare } from './common/Layout'
 import { SnackbarProvider } from 'notistack'
 import { isNil } from 'lodash'
@@ -12,12 +12,13 @@ import { toastMessage } from './common/Toast'
 import { cssRgba } from './common/utils/color'
 import { SocketService } from './socketService'
 import { PASS_OR_PLAY, ROUND_STATUS } from './constants'
-import StyledButton from './common/Button'
+import { FullButton } from './common/Button'
 import RevealText from './common/RevealText'
+import SpeechBubble from './common/SpeechBubble'
 
 const glow = (color) => {
   return {
-    boxShadow: `inset 0 0 20px 5px ${cssRgba({ color, a: 0.5 })}, 0 0 20px 5px ${cssRgba({
+    boxShadow: `inset 0 0 2em 0.5em ${cssRgba({ color, a: 0.5 })}, 0 0 2em 0.5em ${cssRgba({
       color,
       a: 0.5,
     })}`,
@@ -32,7 +33,8 @@ const maxNumStrikes = 3
 const numScores = 2
 
 export default function Round({ playerId, gameState, playerStates, teamStates, roundState }) {
-  const teamId = findTeamByPlayer(teamStates, playerId)
+  // const teamId = findTeamByPlayer(teamStates, playerId)
+  const teamId = playerStates?.[playerId]?.teamId
   const {
     roundStatus,
     question,
@@ -42,6 +44,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     points,
     turn,
     faceoffWinner,
+    gameWinner,
   } = roundState || {}
   const [prevNumStrikes, setPrevNumStrikes] = useState(0)
   const [isFetchingQuestion, setIsFetchingQuestion] = useState(false)
@@ -103,6 +106,8 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     setInputValue('')
   }
 
+  const isXs = useMediaQuery(theme.breakpoints.only('xs'))
+
   const renderOval = () => (
     <FlexBox
       fp
@@ -117,7 +122,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         borderColor='secondary.main'
         br='50%'
         sx={{
-          //   boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
+          //   boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
           ...glow('yellow'),
         }}
       ></FlexBox>
@@ -142,7 +147,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         <FlexBox
           key={index}
           sx={{
-            border: '0.3em solid red',
+            border: '1em solid red',
             br: 2,
             w: '10em',
             h: '10em',
@@ -150,7 +155,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
             userSelect: 'None',
           }}
         >
-          <Typography variant='h1' color='red'>
+          <Typography variant='h1' color='red' sx={{ fontWeight: 800 }}>
             X
           </Typography>
         </FlexBox>
@@ -158,103 +163,115 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     </FlexRow>
   )
 
-  const renderScore = (score) => (
+  const renderScore = (score, title, someTeamId) => (
     <FlexSquare
       sx={{
         bgcolor: 'secondary.main',
-        br: 3,
-        boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
-        p: 2,
+        br: '15%',
+        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+        p: '1em',
+        position: 'relative',
       }}
     >
-      <FlexBox fp bgcolor='#2E6ED5' br={2}>
-        <Typography variant='h1'>{score}</Typography>
+      {gameWinner && gameWinner === someTeamId && renderWinnerMessage()}
+      {!isNil(title) && renderTeamNameFloating(title)}
+      {!isNil(someTeamId) && renderTeamInputFloating(someTeamId)}
+      <FlexBox fp bgcolor='#2E6ED5' br='15%'>
+        <Typography variant='h2'>{score}</Typography>
       </FlexBox>
     </FlexSquare>
   )
 
   const renderAnswerGrid = () => (
     <FlexBox
-      fh
-      f='0 0 50%'
+      fp
+      // w='50%'
       p={3}
       border='1em solid'
       borderColor='secondary.main'
       br={3}
-      sx={{ boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)' }}
+      sx={{ boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)' }}
     >
-      <FlexRow fp bgcolor='#BDBDB8' p={2} g={2} br={1}>
-        {answerCols.map((answerCol, colIndex) => (
-          <FlexCol fp key={colIndex} g={2}>
-            {answerCol.map((answer, cellIndex) => (
-              <FlexBox key={cellIndex} fp br={1} sx={{ overflow: 'hidden' }}>
-                {!answer ? (
-                  <FlexBox />
-                ) : answer.isRevealed ? (
-                  <FlexRow
-                    fp
-                    jc='space-between'
-                    p={1}
-                    g={1}
-                    bgcolor='#2E6ED5'
-                    sx={{
-                      boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
-                    }}
-                  >
-                    <FlexBox
-                      flexible
-                      fh
-                      br={1}
-                      //   b='0.3em solid white'
-                      //   sx={{ borderRightWidth: '0.15em' }}
+      <FlexRow fp bgcolor='#BDBDB8' p={2} br={1}>
+        <FlexRow fp g={2}>
+          {answerCols.map((answerCol, colIndex) => (
+            <FlexCol fh w='50%' key={colIndex} g={2}>
+              {answerCol.map((answer, cellIndex) => (
+                <FlexBox key={cellIndex} fp br={1} sx={{ overflow: 'hidden' }}>
+                  {answer?.isRevealed ? (
+                    <FlexRow
+                      fp
+                      jc='space-between'
+                      p={1}
+                      g={1}
+                      bgcolor='#2E6ED5'
                       sx={{
-                        boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
+                        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
                       }}
                     >
-                      <Typography variant='h2'>{answer.name}</Typography>
-                    </FlexBox>
+                      <FlexBox
+                        flexible
+                        fh
+                        br={1}
+                        //   b='0.3em solid white'
+                        //   sx={{ borderRightWidth: '0.15em' }}
+                        sx={{
+                          boxShadow:
+                            'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+                        }}
+                        p={1}
+                      >
+                        <Typography variant='h3' noWrap>
+                          {answer.name}
+                        </Typography>
+                      </FlexBox>
+                      <FlexBox
+                        fixed
+                        fh
+                        ar='1'
+                        br={1}
+                        //   b='0.3em solid white'
+                        //   sx={{ borderLeftWidth: '0.15em' }}
+                        sx={{
+                          boxShadow:
+                            'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+                        }}
+                        bgcolor='#0C51B2'
+                      >
+                        <Typography variant='h3'> {answer.quantity}</Typography>
+                      </FlexBox>
+                    </FlexRow>
+                  ) : (
                     <FlexBox
-                      fixed
-                      fh
-                      ar='1'
-                      br={1}
-                      //   b='0.3em solid white'
-                      //   sx={{ borderLeftWidth: '0.15em' }}
+                      fp
+                      bgcolor='#2E6ED5'
                       sx={{
-                        boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
-                      }}
-                      bgcolor='#0C51B2'
-                    >
-                      <Typography variant='h2'> {answer.quantity}</Typography>
-                    </FlexBox>
-                  </FlexRow>
-                ) : (
-                  <FlexBox
-                    fp
-                    bgcolor='#2E6ED5'
-                    sx={{
-                      boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
-                    }}
-                  >
-                    <FlexBox
-                      ar='1'
-                      h={0.8}
-                      br='50%'
-                      bgcolor='#0F2C88'
-                      sx={{
-                        boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.5), 0 0 5px rgba(0, 0, 0, 0.5)',
+                        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
                       }}
                     >
-                      <Typography variant='h2' fontWeight='bold'>
-                        {answer.index + 1}
-                      </Typography>
+                      {answer && (
+                        <FlexBox
+                          ar='1'
+                          h={0.8}
+                          br='50%'
+                          bgcolor='#0F2C88'
+                          sx={{
+                            boxShadow:
+                              'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+                          }}
+                        >
+                          <Typography variant='h2' fontWeight='bold'>
+                            {answer.index + 1}
+                          </Typography>
+                        </FlexBox>
+                      )}
                     </FlexBox>
-                  </FlexBox>
-                )}
-              </FlexBox>
-            ))}
-          </FlexCol>
-        ))}
+                  )}
+                </FlexBox>
+              ))}
+            </FlexCol>
+          ))}
+        </FlexRow>
       </FlexRow>
     </FlexBox>
   )
@@ -291,7 +308,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
             height: 1,
             aspectRatio: 1,
             // bgcolor: '#0F2C88',
-            boxShadow: 'inset 0 0 10px rgba(255, 255, 255, 0.5)',
+            boxShadow: 'inset 0 0 1em rgba(255, 255, 255, 0.5)',
           }}
           // onClick={() => sendMessageToBackground({ type: 'SOCKET', action: 'testMessage' })}
         >
@@ -304,23 +321,23 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
   const renderPassOrPlayButtons = () => (
     <FlexRow fp>
       {Object.entries(PASS_OR_PLAY).map(([key, value]) => (
-        <StyledButton
+        <FullButton
           key={key}
           onClick={async () =>
             SocketService.sendServerMessage('selectPassOrPlay', [{ passOrPlay: value }])
           }
         >
           {value}
-        </StyledButton>
+        </FullButton>
       ))}
     </FlexRow>
   )
 
   const renderNextRoundButton = () => (
     <FlexRow fp>
-      <StyledButton onClick={async () => SocketService.sendServerMessage('startNextRound')}>
+      <FullButton onClick={async () => SocketService.sendServerMessage('startNextRound')}>
         Next Round
-      </StyledButton>
+      </FullButton>
     </FlexRow>
   )
   const renderTeamInput = (someTeamId) => (
@@ -333,105 +350,221 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         turn === someTeamId &&
         teamStates?.[someTeamId]?.input && (
           <FlexRow g={2}>
-            <Typography variant='h2'>{teamStates?.[someTeamId]?.input || ' '}</Typography>
-            <CircularProgress />
+            <Typography variant='h5'>{teamStates?.[someTeamId]?.input || ' '}</Typography>
+            <CircularProgress size='1em' />
           </FlexRow>
         )) ||
         ' '}
     </FlexCol>
   )
 
+  const renderTeamInputFloating = (someTeamId) =>
+    [
+      ROUND_STATUS.VERIFYING_FACEOFF_ANSWER,
+      ROUND_STATUS.VERIFYING_MAIN_ANSWER,
+      ROUND_STATUS.VERIFYING_STEAL_ANSWER,
+    ].includes(roundStatus) &&
+    turn === someTeamId &&
+    teamStates?.[someTeamId]?.input && (
+      <FlexBox
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: '50%',
+          width: '90%',
+          transform: 'translate(-50%,50%)',
+          bgcolor: 'primary.dark',
+          br: '10%',
+          boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+        }}
+      >
+        <FlexRow fw>
+          <Typography variant='h3' sx={{ textAlign: 'center' }}>
+            {teamStates?.[someTeamId]?.input || ''}
+          </Typography>
+          <CircularProgress size='3em' />
+        </FlexRow>
+      </FlexBox>
+    )
+
+  const renderTeamInputSpeechBubble = (someTeamId) =>
+    [
+      ROUND_STATUS.VERIFYING_FACEOFF_ANSWER,
+      ROUND_STATUS.VERIFYING_MAIN_ANSWER,
+      ROUND_STATUS.VERIFYING_STEAL_ANSWER,
+    ].includes(roundStatus) &&
+    turn === someTeamId &&
+    teamStates?.[someTeamId]?.input && (
+      <SpeechBubble>
+        <FlexRow g={2} p={2}>
+          <Typography variant='h4'>{teamStates?.[someTeamId]?.input || ''}</Typography>
+          <CircularProgress />
+        </FlexRow>
+      </SpeechBubble>
+    )
+
   const renderTeamPlayers = (someTeamId) => (
     <FlexCol>
       {(teamStates?.[someTeamId]?.players || [])
         .map((teamPlayerId) => teamPlayerId)
-        .filter((teamPlayerId) => teamPlayerId in playerStates)
+        .filter((teamPlayerId) => playerStates?.[teamPlayerId]?.isConnected)
         .map((teamPlayerId) => (
           <Typography key={teamPlayerId}>{playerStates[teamPlayerId].name}</Typography>
         ))}
     </FlexCol>
   )
 
-  return (
-    <SnackbarProvider maxSnack={3}>
-      <ThemeProvider theme={theme}>
-        <FlexBox
-          id='round'
-          fp
-          sx={{
-            w: '100vw',
-            h: '100vh',
-            overflow: 'hidden',
-            // bgcolor: (theme) => theme.palette.background.default,
-            fontSize: '10px',
-            '*': {
-              boxSizing: 'border-box',
-            },
-            zIndex: 0,
-          }}
-        >
-          {/* {renderOval()} */}
-          <FlexCol fp jc='start' g={5} zIndex={999}>
-            <FlexRow w={0.75} f='0 0 10%'>
-              {renderStrikes()}
-              <StyledButton
-                onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}
-              >
-                testRevealAllAnswers
-              </StyledButton>
-            </FlexRow>
-            <FlexRow fw f='0 0 10%'>
-              {renderScore(roundState?.points || 0)}
-            </FlexRow>
+  const renderTeamName = (teamSide) => (
+    <FlexBox>
+      <Typography variant='h4' sx={{ whiteSpace: 'nowrap' }}>{`Team ${teamSide + 1}`}</Typography>
+    </FlexBox>
+  )
 
-            <FlexRow fw f='0 0 10%'>
-              {roundStatus === ROUND_STATUS.WAITING_FOR_QUESTION ? (
-                <FlexCol fp>
-                  <CircularProgress />
-                </FlexCol>
-              ) : (
-                <Typography variant='h2'>
-                  <RevealText text={question} />
-                </Typography>
-              )}
-            </FlexRow>
-            <FlexRow fw f='0 0 60%' g={5}>
-              <FlexBox fh f='0 0 15%'>
-                <FlexCol fp>
-                  {renderTeamInput(scores?.[0]?.id)}
-                  {renderScore(scores?.[0]?.score || 0)}
-                  {renderTeamPlayers(scores?.[0]?.id)}
-                </FlexCol>
-              </FlexBox>
-              <FlexBox fh f='0 0 70%'>
-                {renderAnswerGrid()}
-              </FlexBox>
-              <FlexBox fh f='0 0 15%'>
-                <FlexCol fp>
-                  {renderTeamInput(scores?.[1]?.id)}
-                  {renderScore(scores?.[1]?.score || 0)}
-                  {renderTeamPlayers(scores?.[1]?.id)}
-                </FlexCol>
-              </FlexBox>
-            </FlexRow>
-            <FlexRow w={0.75} f='0 0 10%'>
-              {renderInput()}
-            </FlexRow>
-            <FlexRow w={0.75} f='0 0 10%'>
-              {roundStatus === ROUND_STATUS.PASS_OR_PLAY && faceoffWinner === teamId
-                ? renderPassOrPlayButtons()
-                : roundStatus === ROUND_STATUS.WAITING_FOR_NEXT
-                ? renderNextRoundButton()
-                : null}
-              {/* <StyledButton
+  const renderTeamNameFloating = (title) => (
+    <FlexBox
+      sx={{
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        width: '90%',
+        transform: 'translate(-50%,-50%)',
+        bgcolor: 'primary.dark',
+        br: 1.5,
+        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+        p: 0.5,
+      }}
+    >
+      <Typography variant='h4' sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
+        {title}
+      </Typography>
+    </FlexBox>
+  )
+
+  const renderWinnerMessage = () => (
+    <FlexBox
+      sx={{
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        width: '90%',
+        transform: 'translate(-50%,-150%)',
+        bgcolor: 'secondary.main',
+        br: 1.5,
+        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+        p: 0.5,
+      }}
+    >
+      <Typography variant='h3' sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
+        Winner!
+      </Typography>
+    </FlexBox>
+  )
+
+  const renderTeams = (teamSide) => (
+    <FlexCol fp pos='relative'>
+      {/* <FlexBox fw h='10%'>
+        {renderTeamInput(scores?.[teamSide]?.id)}
+      </FlexBox> */}
+      {/* <FlexBox fw h='10%' pos='relative'>
+        {renderTeamInputSpeechBubble(scores?.[teamSide]?.id)}
+        {renderTeamName(teamSide)}
+      </FlexBox> */}
+      {renderScore(scores?.[teamSide]?.score || 0, `Team ${teamSide + 1}`, scores?.[teamSide]?.id)}
+      <FlexBox fw h='20%'>
+        {!isXs && renderTeamPlayers(scores?.[teamSide]?.id)}
+      </FlexBox>
+    </FlexCol>
+  )
+
+  const renderTeamsXs = (teamSide) => (
+    <FlexRow fh fw pos='relative' jc={teamSide ? 'end' : 'start'} g={1}>
+      {teamSide === 1 && renderScore(scores?.[teamSide]?.score || 0)}
+      <FlexCol fh jc='start' ai={teamSide ? 'start' : 'end'}>
+        {renderTeamName(teamSide)}
+        {renderTeamInput(scores?.[teamSide]?.id)}
+      </FlexCol>
+      {teamSide === 0 && renderScore(scores?.[teamSide]?.score || 0)}
+    </FlexRow>
+  )
+
+  return (
+    <FlexBox
+      id='round'
+      fp
+      sx={{
+        w: 1,
+        h: 1,
+        overflow: 'hidden',
+        // bgcolor: (theme) => theme.palette.background.default,
+        // fontSize: '1em',
+        // '*': {
+        //   boxSizing: 'border-box',
+        // },
+        zIndex: 0,
+      }}
+    >
+      {/* {renderOval()} */}
+      <FlexCol fp jc='start' p={10} g={8} zIndex={999} pos='relative'>
+        <FlexRow fw h='10%' jc='space-between' pos='relative'>
+          {renderStrikes()}
+          <Button onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}>
+            testRevealAllAnswers
+          </Button>
+        </FlexRow>
+        <FlexRow fw h='10%' pos='relative'>
+          <FlexBox fh w='33%'>
+            {isXs && renderTeams(0)}
+          </FlexBox>
+          <FlexBox fh w='33%'>
+            {renderScore(roundState?.points || 0)}
+          </FlexBox>
+          <FlexBox fh w='33%'>
+            {isXs && renderTeams(1)}
+          </FlexBox>
+        </FlexRow>
+
+        <FlexRow fw h='10%' pos='relative'>
+          {roundStatus === ROUND_STATUS.WAITING_FOR_QUESTION ? (
+            <FlexCol fp>
+              <CircularProgress />
+            </FlexCol>
+          ) : (
+            <Typography variant='h2' sx={{ fontWeight: 600, textAlign: 'center' }}>
+              <RevealText text={question} />
+            </Typography>
+          )}
+        </FlexRow>
+        <FlexRow fw h='60%' g={5} pos='relative'>
+          {!isXs && (
+            <FlexBox fh w='15%'>
+              <FlexCol fp>{renderTeams(0)}</FlexCol>
+            </FlexBox>
+          )}
+          <FlexBox fh w={isXs ? '100%' : '70%'} pos='relative'>
+            {renderAnswerGrid()}
+          </FlexBox>
+          {!isXs && (
+            <FlexBox fh w='15%'>
+              <FlexCol fp>{renderTeams(1)}</FlexCol>
+            </FlexBox>
+          )}
+        </FlexRow>
+        <FlexRow w={0.75} h='10%' pos='relative'>
+          {renderInput()}
+        </FlexRow>
+        <FlexRow w={0.75} h='10%' pos='relative'>
+          {roundStatus === ROUND_STATUS.PASS_OR_PLAY && faceoffWinner === teamId
+            ? renderPassOrPlayButtons()
+            : roundStatus === ROUND_STATUS.WAITING_FOR_NEXT
+            ? renderNextRoundButton()
+            : null}
+          {/* <FullButton
                 onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}
               >
                 testRevealAllAnswers
-              </StyledButton> */}
-            </FlexRow>
-          </FlexCol>
-        </FlexBox>
-      </ThemeProvider>
-    </SnackbarProvider>
+              </FullButton> */}
+        </FlexRow>
+      </FlexCol>
+    </FlexBox>
   )
 }

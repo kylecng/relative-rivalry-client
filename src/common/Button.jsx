@@ -3,8 +3,9 @@ import { FlexRow } from './Layout'
 import { StyledIcon } from './Icon'
 import { FaRegStar, FaStar, FaXmark } from 'react-icons/fa6'
 import { merge } from 'lodash'
+import { IoArrowBack } from 'react-icons/io5'
 
-export default function StyledButton({
+export const StyledButton = ({
   children,
   text,
   icon,
@@ -14,8 +15,9 @@ export default function StyledButton({
   iconProps,
   leftIconProps,
   rightIconProps,
+  contentProps,
   ...restProps
-}) {
+}) => {
   return (
     <Button
       {...merge(
@@ -24,18 +26,17 @@ export default function StyledButton({
           size: 'small',
           sx: {
             bgcolor: 'primary.main',
-            width: 1,
-            height: 1,
+
             borderRadius: 2,
           },
         },
         { ...restProps },
       )}
     >
-      <FlexRow>
+      <FlexRow {...contentProps}>
         {icon && <StyledIcon icon={icon} {...iconProps} />}
         {leftIcon && <StyledIcon icon={leftIcon} {...leftIconProps} />}
-        <Typography variant='h3' {...textProps}>
+        <Typography variant='h6' {...textProps}>
           {text || children || ''}
         </Typography>
         {rightIcon && <StyledIcon icon={rightIcon} {...rightIconProps} />}
@@ -43,3 +44,7 @@ export default function StyledButton({
     </Button>
   )
 }
+
+export const FullButton = (props) => (
+  <StyledButton {...merge({ sx: { width: 1, height: 1 } }, { ...props })} />
+)

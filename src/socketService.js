@@ -32,11 +32,13 @@ class SocketService {
     )
   }
 
-  connect() {
+  connect({ playerId }) {
+    if (this.socket?.connected) return
     this.socket = io('http://localhost:3000')
 
     this.socket.on('connect', () => {
       console.log('Connected to the server')
+      this.socket.emit('playerId', JSON.stringify({ playerId }))
     })
 
     // this.socket.onopen = () => {

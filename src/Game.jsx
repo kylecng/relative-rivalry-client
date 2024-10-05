@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './index.css'
-import { FlexBox } from './common/Layout'
+import { FlexBox, FlexCol } from './common/Layout'
 import MainMenu from './MainMenu'
 import Round from './Round'
 import { GAME_STATUS } from './constants'
@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { cloneDeep, isObject, zipObject } from 'lodash'
 import Lobby from './Lobby'
 import { useExtendedState } from './common/utils/hooks'
+import { CircularProgress, Typography } from '@mui/material'
 
 const useTimestampState = (initialState) => {
   const state = useExtendedState(initialState)
@@ -40,13 +41,11 @@ export default function Game() {
 
   useEffect(() => {
     let storedPlayerId = localStorage.getItem('playerId') || uuidv4()
+    localStorage.setItem('playerId', storedPlayerId)
     setPlayerId(storedPlayerId)
-  }, [])
-
-  useEffect(() => {
-    SocketService.connect()
+    SocketService.connect({ playerId: storedPlayerId })
     SocketService.socket.on(`stateUpdate`, (newState) => {
-      // console.log('NEW STATE:', newState)
+      console.log('new state:', newState)
       const newTimestamp = newState?.timestamp
       if (!newTimestamp) return
       stateKeys.forEach((stateKey) => {
@@ -79,11 +78,11 @@ export default function Game() {
   }, [])
 
   useEffect(() => {
-    console.log(cloneDeep({ gameState, playerStates, teamStates, roundState }))
+    console.log('COMPLETE STATE:', cloneDeep({ gameState, playerStates, teamStates, roundState }))
   }, [gameState, playerStates, teamStates, roundState])
 
   return (
-    <FlexBox
+    <FlexCol
       id='game'
       fp
       sx={{
@@ -91,20 +90,41 @@ export default function Game() {
         h: '100vh',
         overflow: 'hidden',
         // bgcolor: (theme) => theme.palette.background.default,
-        fontSize: '10px',
+
+        '@media (min-width: 0px) and (min-height: 0px)': {
+          fontSize: '2px',
+        },
+        '@media (min-width: 300px) and (min-height: 300px)': {
+          fontSize: '4px',
+        },
+        '@media (min-width: 600px) and (min-height: 600px)': {
+          fontSize: '6px',
+        },
+        '@media (min-width: 900px) and (min-height: 900px)': {
+          fontSize: '8px',
+        },
+        '@media (min-width: 1200px) and (min-height: 1200px)': {
+          fontSize: '10px',
+        },
+        '@media (min-width: 1536px) and (min-height: 1536px)': {
+          fontSize: '12px',
+        },
         '*': {
           boxSizing: 'border-box',
         },
         zIndex: 0,
       }}
     >
-      {gameStatus === GAME_STATUS.MAIN_MENU ? (
+      <Typography variant='h2'>{playerId}</Typography>
+      {!playerId ? (
+        <CircularProgress />
+      ) : gameStatus === GAME_STATUS.MAIN_MENU ? (
         <MainMenu {...{ playerId, ...stateProps }} />
       ) : gameStatus === GAME_STATUS.LOBBY ? (
         <Lobby {...{ playerId, ...stateProps }} />
       ) : gameStatus === GAME_STATUS.ROUND ? (
         <Round {...{ playerId, ...stateProps }} />
       ) : null}
-    </FlexBox>
+    </FlexCol>
   )
 }
