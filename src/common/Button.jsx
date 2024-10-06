@@ -48,3 +48,12 @@ export const StyledButton = ({
 export const FullButton = (props) => (
   <StyledButton {...merge({ sx: { width: 1, height: 1 } }, { ...props })} />
 )
+
+export const BackButton = ({ children, text, iconProps, textProps, ...restProps }) => (
+  <FlexRow cursor='pointer' {...restProps}>
+    <StyledIcon icon={IoArrowBack} size='1.5em' color='text.primary' mx={0.5} {...iconProps} />
+    <Typography color='text.primary' {...textProps}>
+      {text || children || ''}
+    </Typography>
+  </FlexRow>
+)

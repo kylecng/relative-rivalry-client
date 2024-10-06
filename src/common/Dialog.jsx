@@ -2,9 +2,10 @@ import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
 import { fromPairs, isEmpty, merge, zip } from 'lodash'
 import { Fragment, cloneElement, useState } from 'react'
-import { FlexCol, FlexDivider, FlexRow } from './Layout'
+import { FlexBox, FlexCol, FlexDivider, FlexRow } from './Layout'
 import { Checkbox, FormControlLabel } from '@mui/material'
-import { toCamelCase } from './utils'
+import { StyledIcon } from './Icon'
+import { FaX } from 'react-icons/fa6'
 
 export default function StyledDialog({
   getId,
@@ -16,6 +17,8 @@ export default function StyledDialog({
   dialogProps,
   skipDialog,
   showSkipDialogCheckbox = false,
+  showCloseButton,
+  showActionButtons = true,
 }) {
   const [open, setOpen] = useState(false)
   const [isSkipDialogChecked, setIsSkipDialogChecked] = useState(false)
@@ -108,10 +111,22 @@ export default function StyledDialog({
         {...(dialogProps?.root || {})}
       >
         <FlexCol onClick={(e) => e.stopPropagation()} fw pos='rel'>
-          <FlexCol id={getId?.('title')} {...(dialogProps?.title || {})} p={5} pt={2} pb={2}>
-            {title}
-          </FlexCol>
-          <FlexDivider />
+          {showCloseButton && (
+            <FlexBox sx={{ position: 'absolute', top: '0.3em', right: '0.3em' }}>
+              <Button onClick={() => setOpen(false)}>
+                <StyledIcon icon={FaX} size='0.8em' />
+              </Button>
+            </FlexBox>
+          )}
+          {title && (
+            <Fragment>
+              <FlexCol id={getId?.('title')} {...(dialogProps?.title || {})} p={5} pt={2} pb={2}>
+                {title}
+              </FlexCol>
+              <FlexDivider />
+            </Fragment>
+          )}
+
           <FlexCol
             id={getId?.('content')}
             fw
@@ -126,32 +141,41 @@ export default function StyledDialog({
             </FlexCol>
           </FlexCol>
           <FlexCol fw p={3} pt={0} {...(dialogProps?.actions || {})} pos='relative'>
-            <FlexRow fp jc='end' g={1}>
-              {renderButton({
-                customButton: cancelButton,
-                defaultButtonContent: 'Cancel',
-                defaultOnClick: handleClose,
-                defaultButtonProps: {
-                  size: 'large',
-                  variant: 'outlined',
-                  color: 'error',
-                },
-              })}
-              {renderButton({
-                customButton: submitButton,
-                defaultButtonContent: 'OK',
-                defaultOnClick: handleClose,
-                defaultButtonProps: {
-                  autoFocus: true,
-                  size: 'large',
-                  variant: 'contained',
-                  color: 'error',
-                },
-              })}
-            </FlexRow>
+            {showActionButtons && (
+              <FlexRow fp jc='end' g={1}>
+                {renderButton({
+                  customButton: cancelButton,
+                  defaultButtonContent: 'Cancel',
+                  defaultOnClick: handleClose,
+                  defaultButtonProps: {
+                    size: 'large',
+                    variant: 'outlined',
+                    color: 'error',
+                  },
+                })}
+                {renderButton({
+                  customButton: submitButton,
+                  defaultButtonContent: 'OK',
+                  defaultOnClick: handleClose,
+                  defaultButtonProps: {
+                    autoFocus: true,
+                    size: 'large',
+                    variant: 'contained',
+                    color: 'error',
+                  },
+                })}
+              </FlexRow>
+            )}
           </FlexCol>
         </FlexCol>
       </Dialog>
     </Fragment>
   )
 }
+
+const toCamelCase = (str) =>
+  str
+    .toLowerCase()
+    .split(/[\s-_]+/)
+    .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+    .join('')

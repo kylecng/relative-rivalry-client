@@ -15,6 +15,7 @@ import { PASS_OR_PLAY, ROUND_STATUS } from './constants'
 import { FullButton } from './common/Button'
 import RevealText from './common/RevealText'
 import SpeechBubble from './common/SpeechBubble'
+import SettingsDialog from './SettingsDialog'
 
 const glow = (color) => {
   return {
@@ -510,6 +511,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
           <Button onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}>
             testRevealAllAnswers
           </Button>
+          <SettingsDialog lobbyId={gameState?.lobbyId || ''} />
         </FlexRow>
         <FlexRow fw h='10%' pos='relative'>
           <FlexBox fh w='33%'>
