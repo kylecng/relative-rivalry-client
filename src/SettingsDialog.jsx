@@ -20,8 +20,8 @@ export default function SettingsDialog({ lobbyId }) {
       // title='Settings'
       openButton={{
         component: (
-          <Button>
-            <StyledIcon icon={Settings} />
+          <Button variant='text'>
+            <StyledIcon icon={Settings} size='5em' />
           </Button>
         ),
       }}

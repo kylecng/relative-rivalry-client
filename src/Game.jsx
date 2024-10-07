@@ -86,9 +86,9 @@ export default function Game() {
       id='game'
       fp
       sx={{
-        w: '100vw',
-        h: '100vh',
-        overflow: 'hidden',
+        w: 1,
+        h: 1,
+        // overflow: 'hidden',
         // bgcolor: (theme) => theme.palette.background.default,
 
         '@media (min-width: 0px) and (min-height: 0px)': {

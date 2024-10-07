@@ -4,6 +4,7 @@ import { StyledIcon } from './Icon'
 import { FaRegStar, FaStar, FaXmark } from 'react-icons/fa6'
 import { merge } from 'lodash'
 import { IoArrowBack } from 'react-icons/io5'
+import { Children } from 'react'
 
 export const StyledButton = ({
   children,
@@ -18,6 +19,10 @@ export const StyledButton = ({
   contentProps,
   ...restProps
 }) => {
+  const isChildrenText = Children.toArray(children).every(
+    (child) => typeof child === 'string' || typeof child === 'number',
+  )
+
   return (
     <Button
       {...merge(
@@ -36,9 +41,11 @@ export const StyledButton = ({
       <FlexRow {...contentProps}>
         {icon && <StyledIcon icon={icon} {...iconProps} />}
         {leftIcon && <StyledIcon icon={leftIcon} {...leftIconProps} />}
-        <Typography variant='h6' {...textProps}>
-          {text || children || ''}
-        </Typography>
+        {text || isChildrenText ? (
+          <Typography {...textProps}>{text || children || ''}</Typography>
+        ) : (
+          children
+        )}
         {rightIcon && <StyledIcon icon={rightIcon} {...rightIconProps} />}
       </FlexRow>
     </Button>

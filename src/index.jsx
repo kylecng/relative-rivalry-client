@@ -13,10 +13,11 @@ export default function Main() {
     <SnackbarProvider maxSnack={3}>
       <ThemeProvider theme={theme}>
         <FlexRow
+          id='main'
           sx={{
             w: '100vw',
             h: '100vh',
-            overflow: 'hidden',
+            // overflow: 'hidden',
             bgcolor: (theme) => theme.palette.background.default,
             fontSize: '10px',
             '*': {

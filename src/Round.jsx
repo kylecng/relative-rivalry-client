@@ -222,7 +222,11 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
                         }}
                         p={1}
                       >
-                        <Typography variant='h3' noWrap>
+                        <Typography
+                          variant='h3'
+                          noWrap
+                          sx={{ fontWeight: 750, textTransform: 'uppercase' }}
+                        >
                           {answer.name}
                         </Typography>
                       </FlexBox>
@@ -239,7 +243,12 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
                         }}
                         bgcolor='#0C51B2'
                       >
-                        <Typography variant='h3'> {answer.quantity}</Typography>
+                        <Typography
+                          variant='h3'
+                          sx={{ fontWeight: 500, textTransform: 'uppercase' }}
+                        >
+                          {answer.quantity}
+                        </Typography>
                       </FlexBox>
                     </FlexRow>
                   ) : (
@@ -320,13 +329,14 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
   )
 
   const renderPassOrPlayButtons = () => (
-    <FlexRow fp>
+    <FlexRow fp g={3}>
       {Object.entries(PASS_OR_PLAY).map(([key, value]) => (
         <FullButton
           key={key}
           onClick={async () =>
             SocketService.sendServerMessage('selectPassOrPlay', [{ passOrPlay: value }])
           }
+          textProps={{ variant: 'h3' }}
         >
           {value}
         </FullButton>
@@ -372,18 +382,20 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
           position: 'absolute',
           bottom: 0,
           left: '50%',
-          width: '90%',
+          minw: '80%',
           transform: 'translate(-50%,50%)',
           bgcolor: 'primary.dark',
           br: '10%',
           boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+          zIndex: 999,
+          p: 0.5,
         }}
       >
-        <FlexRow fw>
+        <FlexRow fw g={1}>
           <Typography variant='h3' sx={{ textAlign: 'center' }}>
             {teamStates?.[someTeamId]?.input || ''}
           </Typography>
-          <CircularProgress size='3em' />
+          <CircularProgress size='2.5em' />
         </FlexRow>
       </FlexBox>
     )
@@ -410,7 +422,9 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         .map((teamPlayerId) => teamPlayerId)
         .filter((teamPlayerId) => playerStates?.[teamPlayerId]?.isConnected)
         .map((teamPlayerId) => (
-          <Typography key={teamPlayerId}>{playerStates[teamPlayerId].name}</Typography>
+          <Typography key={teamPlayerId} variant='h3' sx={{ fontWeight: 500 }}>
+            {playerStates[teamPlayerId].name}
+          </Typography>
         ))}
     </FlexCol>
   )
@@ -427,7 +441,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         position: 'absolute',
         top: 0,
         left: '50%',
-        width: '90%',
+        minw: '80%',
         transform: 'translate(-50%,-50%)',
         bgcolor: 'primary.dark',
         br: 1.5,
@@ -435,7 +449,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         p: 0.5,
       }}
     >
-      <Typography variant='h4' sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
+      <Typography variant='h3' sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
         {title}
       </Typography>
     </FlexBox>
@@ -447,7 +461,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         position: 'absolute',
         top: 0,
         left: '50%',
-        width: '90%',
+        minw: '80%',
         transform: 'translate(-50%,-150%)',
         bgcolor: 'secondary.main',
         br: 1.5,
@@ -455,7 +469,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         p: 0.5,
       }}
     >
-      <Typography variant='h3' sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
+      <Typography variant='h2' sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
         Winner!
       </Typography>
     </FlexBox>
@@ -495,7 +509,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
       sx={{
         w: 1,
         h: 1,
-        overflow: 'hidden',
+        // overflow: 'hidden',
         // bgcolor: (theme) => theme.palette.background.default,
         // fontSize: '1em',
         // '*': {

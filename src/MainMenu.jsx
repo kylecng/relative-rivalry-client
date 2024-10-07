@@ -13,9 +13,7 @@ const CREATE_OR_JOIN = Object.freeze({
   JOIN: 'Join Lobby',
 })
 
-const StyledButton = ({ ...props }) => (
-  <FullButton {...merge({ textProps: { variant: 'h6' }, sx: { p: 1 } }, { ...props })} />
-)
+const StyledButton = ({ ...props }) => <FullButton {...merge({ sx: { p: 1 } }, { ...props })} />
 
 export default function MainMenu({ playerId, gameState, playerStates, teamStates, roundState }) {
   const [createOrJoin, setCreateOrJoin] = useState(null)
@@ -32,7 +30,7 @@ export default function MainMenu({ playerId, gameState, playerStates, teamStates
       sx={{
         w: '100vw',
         h: '100vh',
-        overflow: 'hidden',
+        // overflow: 'hidden',
         // bgcolor: (theme) => theme.palette.background.default,
         fontSize: '10px',
         '*': {
@@ -62,9 +60,9 @@ export default function MainMenu({ playerId, gameState, playerStates, teamStates
               ])
             }}
           >
-            <FlexCol>
+            <FlexRow>
               <Typography>Create Room</Typography>
-            </FlexCol>
+            </FlexRow>
           </StyledButton>
           <BackButton cursor='pointer' onClick={() => setCreateOrJoin(CREATE_OR_JOIN.JOIN)}>
             Join Room
@@ -104,9 +102,9 @@ export default function MainMenu({ playerId, gameState, playerStates, teamStates
               ])
             }}
           >
-            <FlexCol>
+            <FlexRow>
               <Typography>Join Room</Typography>
-            </FlexCol>
+            </FlexRow>
           </StyledButton>
           <BackButton onClick={() => setCreateOrJoin(CREATE_OR_JOIN.CREATE)}>
             Create Room
@@ -115,18 +113,17 @@ export default function MainMenu({ playerId, gameState, playerStates, teamStates
       ) : (
         <FlexCol g={1}>
           <StyledButton onClick={() => setCreateOrJoin(CREATE_OR_JOIN.CREATE)}>
-            <FlexCol>
+            <FlexRow>
               <Typography>Create Room</Typography>
-            </FlexCol>
+            </FlexRow>
           </StyledButton>
           <Divider flexItem variant='fullWidth'>
             <Typography>OR</Typography>
           </Divider>
-          <StyledButton onClick={() => setCreateOrJoin(CREATE_OR_JOIN.JOIN)}>
-            <FlexCol>
-              <Typography>Join Room</Typography>
-            </FlexCol>
-          </StyledButton>
+          <StyledButton
+            text='Join Room'
+            onClick={() => setCreateOrJoin(CREATE_OR_JOIN.JOIN)}
+          ></StyledButton>
         </FlexCol>
       )}
     </FlexBox>
