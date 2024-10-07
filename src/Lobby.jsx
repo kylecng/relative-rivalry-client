@@ -4,6 +4,7 @@ import { FlexBox, FlexRow, FlexCol } from './common/Layout'
 import { GAME_STATUS, NUM_TEAMS } from './constants'
 import { SocketService } from './socketService'
 import { useExtendedState } from './common/utils/hooks'
+import { StyledButton, BackButton } from './common/Button'
 
 export default function Lobby({ playerId, gameState, playerStates, teamStates, roundState }) {
   const [playerName, setPlayerName, getPlayerName] = useExtendedState('')
@@ -24,15 +25,25 @@ export default function Lobby({ playerId, gameState, playerStates, teamStates, r
         zIndex: 0,
       }}
     >
-      <Typography variant='h2'>Room Code:</Typography>
+      <FlexRow w={1} maxw='500px' jc='start'>
+        <BackButton
+          onClick={async () => {
+            SocketService.sendServerMessage('leaveLobby', [{ playerId }])
+          }}
+        >
+          Main Menu
+        </BackButton>
+      </FlexRow>
+
+      <Typography variant='h6'>Room Code:</Typography>
       <Typography variant='h2'>{gameState?.lobbyId || ''}</Typography>
-      <FlexRow>
+      <FlexRow g={2}>
         {Object.entries(teamStates).map(([teamId, team], index) => (
           <FlexCol key={teamId}>
-            <Typography variant='h3'>{`Team ${index + 1}`}</Typography>
+            <Typography variant='h4'>{`Team ${index + 1}`}</Typography>
             {team.players
               .map((teamPlayerId) => teamPlayerId)
-              .filter((teamPlayerId) => teamPlayerId in playerStates)
+              .filter((teamPlayerId) => playerStates?.[teamPlayerId]?.isConnected)
               .map((teamPlayerId) => (
                 <Typography key={teamPlayerId}>{playerStates[teamPlayerId].name}</Typography>
               ))}
@@ -40,12 +51,9 @@ export default function Lobby({ playerId, gameState, playerStates, teamStates, r
         ))}
       </FlexRow>
 
-      <Button>
-        <FlexRow onClick={async () => SocketService.sendServerMessage('startNextRound')}>
-          {/* <StyledIcon icon={IoArrowBack} /> */}
-          <Typography>Start Game</Typography>
-        </FlexRow>
-      </Button>
+      <StyledButton onClick={async () => SocketService.sendServerMessage('startNextRound')}>
+        Start Game
+      </StyledButton>
     </FlexCol>
   )
 }
