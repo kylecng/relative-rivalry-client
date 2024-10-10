@@ -7,7 +7,7 @@ import { SnackbarProvider } from 'notistack'
 import { isNil } from 'lodash'
 import { devErr, findTeamByPlayer, getErrStr, getScoresArray, isValidNumber } from './utils'
 import { StyledIcon } from './common/Icon'
-import { IoRefresh, IoSend } from 'react-icons/io5'
+import { IoArrowBack, IoArrowForward, IoRefresh, IoSend } from 'react-icons/io5'
 import { toastMessage } from './common/Toast'
 import { cssRgba } from './common/utils/color'
 import { SocketService } from './socketService'
@@ -46,11 +46,11 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     turn,
     faceoffWinner,
     gameWinner,
+    isShowStrikes,
+    isShowTryAgain,
   } = roundState || {}
-  const [prevNumStrikes, setPrevNumStrikes] = useState(0)
   const [isFetchingQuestion, setIsFetchingQuestion] = useState(false)
   const [isVerifyingAnswer, setIsVerifyingAnswer] = useState(false)
-  const [isShowStrikes, setIsShowStrikes] = useState(false)
   const [inputValue, setInputValue] = useState('')
 
   const [revealStep, setRevealStep] = useState(0)
@@ -68,24 +68,6 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
       index % colSize === 0 ? [...result, answerCells.slice(index, index + colSize) || []] : result,
     [],
   )
-
-  useEffect(() => {
-    if (isShowStrikes) {
-      const timer = setTimeout(() => {
-        setIsShowStrikes(false)
-      }, 3000)
-
-      return () => clearTimeout(timer)
-    }
-  }, [isShowStrikes])
-
-  useEffect(() => {
-    if (numStrikes > prevNumStrikes) {
-      setIsShowStrikes(true)
-    }
-
-    setPrevNumStrikes(numStrikes)
-  }, [prevNumStrikes, numStrikes])
 
   useEffect(() => {
     if (errorText?.trim()) {
@@ -161,6 +143,26 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
           </Typography>
         </FlexBox>
       ))}
+    </FlexRow>
+  )
+
+  const renderTryAgain = () => (
+    <FlexRow
+      sx={{
+        opacity: 0,
+        transition: 'opacity 0.5s ease-in-out',
+        ...(isShowTryAgain ? { opacity: 1 } : {}),
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10,
+      }}
+      g={2}
+    >
+      <Typography variant='h1' color='warning.main' sx={{ fontWeight: 600 }}>
+        Already Answered. Try Again.
+      </Typography>
     </FlexRow>
   )
 
@@ -346,8 +348,13 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
 
   const renderNextRoundButton = () => (
     <FlexRow fp>
-      <FullButton onClick={async () => SocketService.sendServerMessage('startNextRound')}>
-        Next Round
+      <FullButton
+        onClick={async () => SocketService.sendServerMessage('startNextRound')}
+        textProps={{ variant: 'h3' }}
+        leftIcon={!isNil(gameWinner) && IoArrowBack}
+        rightIcon={!isNil(gameWinner) && IoArrowForward}
+      >
+        {!isNil(gameWinner) ? 'Back To Lobby' : 'Next Round'}
       </FullButton>
     </FlexRow>
   )
@@ -522,6 +529,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
       <FlexCol fp jc='start' p={10} g={8} zIndex={999} pos='relative'>
         <FlexRow fw h='10%' jc='space-between' pos='relative'>
           {renderStrikes()}
+          {renderTryAgain()}
           <Button onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}>
             testRevealAllAnswers
           </Button>
