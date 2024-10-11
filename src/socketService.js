@@ -1,30 +1,17 @@
 import { cloneDeep } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 import io from 'socket.io-client'
+import { devLog } from './utils'
 
 class SocketService {
-  constructor() {
-    // this.awaitingResp = {}
-  }
+  constructor() {}
 
-  testMessage() {
-    this.socket.send(
-      JSON.stringify({
-        type: 'ligma',
-        text: 'HELLO WORLD',
-      }),
-    )
-  }
   sendServerMessage(action, params) {
-    console.log('sendServerMessage', { action, params })
-    // const messageId = uuidv4()
-    // this.awaitingResp[messageId] = { resolve: sendResponse }
+    devLog('sendServerMessage', { action, params })
 
-    // console.log('awaitingResp after ssm', cloneDeep(this.awaitingResp))
     this.socket.emit(
       'action',
       JSON.stringify({
-        // id: messageId,
         type: 'request',
         action,
         params,
@@ -34,34 +21,47 @@ class SocketService {
 
   connect({ playerId }) {
     if (this.socket?.connected) return
-    this.socket = io('http://localhost:3000')
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+    devLog('BACKEND_URL', BACKEND_URL)
+    this.socket = io(BACKEND_URL)
 
     this.socket.on('connect', () => {
-      console.log('Connected to the server')
+      devLog('Connected to the server')
       this.socket.emit('playerId', JSON.stringify({ playerId }))
     })
 
-    // this.socket.onopen = () => {
-    //   console.log('Connected to the server')
-    //   this.socket.send(
-    //     JSON.stringify({
-    //       action: 'joinLobby',
+    // Handle connection errors
+    this.socket.on('connect_error', (error) => {
+      console.error('Connection Error:', error)
+      // Show a user-friendly message or take action based on the error
+    })
 
-    //       type: 'request',
-    //       params: [{ sessionId: 'ABCD' }],
-    //     }),
-    //   )
-    // }
+    // Handle connection timeout
+    this.socket.on('connect_timeout', (timeout) => {
+      console.warn('Connection Timeout:', timeout)
+      // Notify the user about the timeout or retry logic
+    })
 
-    // this.socket.onmessage = (event) => {
-    //   const data = JSON.parse(event.data)
-    //   console.log('from server', data)
-    //   console.log('awaitingResp', cloneDeep(this.awaitingResp))
-    //   if (data?.id in this.awaitingResp) {
-    //     this.awaitingResp[data.id]?.resolve(data?.data || {})
-    //     delete this.awaitingResp[data.id]
-    //   }
-    // }
+    // Handle disconnection
+    this.socket.on('disconnect', (reason) => {
+      console.warn('Disconnected:', reason)
+      // You can implement a reconnection strategy or inform the user
+    })
+
+    // Handle reconnection attempts
+    this.socket.on('reconnect_attempt', (attempt) => {
+      console.log(`Attempting to reconnect (${attempt})...`)
+    })
+
+    // Handle successful reconnection
+    this.socket.on('reconnect', (attempt) => {
+      console.log(`Reconnected on attempt: ${attempt}`)
+    })
+
+    // Handle reconnection failure
+    this.socket.on('reconnect_failed', () => {
+      console.error('Reconnection failed. Please check your connection.')
+    })
 
     return this.socket
   }

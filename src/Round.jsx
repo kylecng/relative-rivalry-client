@@ -29,9 +29,6 @@ const glow = (color) => {
 const maxNumAnswers = 8
 const numCols = 2
 const colSize = maxNumAnswers / numCols
-const initialStrikes = 0
-const maxNumStrikes = 3
-const numScores = 2
 
 export default function Round({ playerId, gameState, playerStates, teamStates, roundState }) {
   // const teamId = findTeamByPlayer(teamStates, playerId)
@@ -41,8 +38,6 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     question,
     answers,
     numStrikes,
-    unrevealedIndices,
-    points,
     turn,
     faceoffWinner,
     gameWinner,
@@ -52,8 +47,6 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
   const [isFetchingQuestion, setIsFetchingQuestion] = useState(false)
   const [isVerifyingAnswer, setIsVerifyingAnswer] = useState(false)
   const [inputValue, setInputValue] = useState('')
-
-  const [revealStep, setRevealStep] = useState(0)
 
   const [errorText, setErrorText] = useState('')
 
@@ -74,8 +67,6 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
       toastMessage(errorText)
     }
   }, [errorText])
-
-  const normalizeString = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '')
 
   const handleChange = (event) => {
     setInputValue(event.target.value)
@@ -352,7 +343,8 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         onClick={async () => SocketService.sendServerMessage('startNextRound')}
         textProps={{ variant: 'h3' }}
         leftIcon={!isNil(gameWinner) && IoArrowBack}
-        rightIcon={!isNil(gameWinner) && IoArrowForward}
+        rightIcon={isNil(gameWinner) && IoArrowForward}
+        iconProps={{ size: '3em' }}
       >
         {!isNil(gameWinner) ? 'Back To Lobby' : 'Next Round'}
       </FullButton>
@@ -530,9 +522,7 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         <FlexRow fw h='10%' jc='space-between' pos='relative'>
           {renderStrikes()}
           {renderTryAgain()}
-          <Button onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}>
-            testRevealAllAnswers
-          </Button>
+
           <SettingsDialog lobbyId={gameState?.lobbyId || ''} />
         </FlexRow>
         <FlexRow fw h='10%' pos='relative'>
@@ -582,11 +572,6 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
             : roundStatus === ROUND_STATUS.WAITING_FOR_NEXT
             ? renderNextRoundButton()
             : null}
-          {/* <FullButton
-                onClick={async () => SocketService.sendServerMessage('testRevealAllAnswers')}
-              >
-                testRevealAllAnswers
-              </FullButton> */}
         </FlexRow>
       </FlexCol>
     </FlexBox>

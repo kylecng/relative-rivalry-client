@@ -10,6 +10,7 @@ import { cloneDeep, isObject, zipObject } from 'lodash'
 import Lobby from './Lobby'
 import { useExtendedState } from './common/utils/hooks'
 import { CircularProgress, Typography } from '@mui/material'
+import { devLog } from './utils'
 
 const useTimestampState = (initialState) => {
   const state = useExtendedState(initialState)
@@ -45,7 +46,7 @@ export default function Game() {
     setPlayerId(storedPlayerId)
     SocketService.connect({ playerId: storedPlayerId })
     SocketService.socket.on(`stateUpdate`, (newState) => {
-      console.log('new state:', newState)
+      devLog('new state:', newState)
       const newTimestamp = newState?.timestamp
       if (!newTimestamp) return
       stateKeys.forEach((stateKey) => {
@@ -62,7 +63,7 @@ export default function Game() {
         }
       })
       // ;(async () =>
-      //   console.log(
+      //   devLog(
       //     'COMPLETE STATE:',
       //     Object.fromEntries(
       //       await Promise.all(
@@ -78,7 +79,7 @@ export default function Game() {
   }, [])
 
   useEffect(() => {
-    console.log('COMPLETE STATE:', cloneDeep({ gameState, playerStates, teamStates, roundState }))
+    devLog('COMPLETE STATE:', cloneDeep({ gameState, playerStates, teamStates, roundState }))
   }, [gameState, playerStates, teamStates, roundState])
 
   return (
@@ -115,7 +116,7 @@ export default function Game() {
         zIndex: 0,
       }}
     >
-      <Typography variant='h2'>{playerId}</Typography>
+      {/* <Typography variant='h2'>{playerId}</Typography> */}
       {!playerId ? (
         <CircularProgress />
       ) : gameStatus === GAME_STATUS.MAIN_MENU ? (

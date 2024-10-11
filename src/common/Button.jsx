@@ -40,13 +40,13 @@ export const StyledButton = ({
     >
       <FlexRow {...contentProps}>
         {icon && <StyledIcon icon={icon} {...iconProps} />}
-        {leftIcon && <StyledIcon icon={leftIcon} {...leftIconProps} />}
+        {leftIcon && <StyledIcon icon={leftIcon} {...iconProps} {...leftIconProps} />}
         {text || isChildrenText ? (
           <Typography {...textProps}>{text || children || ''}</Typography>
         ) : (
           children
         )}
-        {rightIcon && <StyledIcon icon={rightIcon} {...rightIconProps} />}
+        {rightIcon && <StyledIcon icon={rightIcon} {...iconProps} {...rightIconProps} />}
       </FlexRow>
     </Button>
   )
