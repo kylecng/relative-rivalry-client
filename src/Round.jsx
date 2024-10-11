@@ -16,6 +16,7 @@ import { FullButton } from './common/Button'
 import RevealText from './common/RevealText'
 import SpeechBubble from './common/SpeechBubble'
 import SettingsDialog from './SettingsDialog'
+import RevealAnimation from './common/RevealAnimation'
 
 const glow = (color) => {
   return {
@@ -176,6 +177,77 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     </FlexSquare>
   )
 
+  const renderHiddenAnswer = (answer) => (
+    <FlexBox
+      fp
+      bgcolor='#2E6ED5'
+      sx={{
+        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+      }}
+    >
+      {answer && (
+        <FlexBox
+          ar='1'
+          h={0.8}
+          br='50%'
+          bgcolor='#0F2C88'
+          sx={{
+            boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          <Typography variant='h2' fontWeight='bold'>
+            {answer.index + 1}
+          </Typography>
+        </FlexBox>
+      )}
+    </FlexBox>
+  )
+
+  const renderRevealedAnswer = (answer) => (
+    <FlexRow
+      fp
+      jc='space-between'
+      p={1}
+      g={1}
+      bgcolor='#2E6ED5'
+      sx={{
+        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+      }}
+    >
+      <FlexBox
+        flexible
+        fh
+        br={1}
+        //   b='0.3em solid white'
+        //   sx={{ borderRightWidth: '0.15em' }}
+        sx={{
+          boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+        }}
+        p={1}
+      >
+        <Typography variant='h3' noWrap sx={{ fontWeight: 750, textTransform: 'uppercase' }}>
+          {answer.name}
+        </Typography>
+      </FlexBox>
+      <FlexBox
+        fixed
+        fh
+        ar='1'
+        br={1}
+        //   b='0.3em solid white'
+        //   sx={{ borderLeftWidth: '0.15em' }}
+        sx={{
+          boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
+        }}
+        bgcolor='#0C51B2'
+      >
+        <Typography variant='h3' sx={{ fontWeight: 500, textTransform: 'uppercase' }}>
+          {answer.quantity}
+        </Typography>
+      </FlexBox>
+    </FlexRow>
+  )
+
   const renderAnswerGrid = () => (
     <FlexBox
       fp
@@ -192,84 +264,12 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
             <FlexCol fh w='50%' key={colIndex} g={2}>
               {answerCol.map((answer, cellIndex) => (
                 <FlexBox key={cellIndex} fp br={1} sx={{ overflow: 'hidden' }}>
-                  {answer?.isRevealed ? (
-                    <FlexRow
-                      fp
-                      jc='space-between'
-                      p={1}
-                      g={1}
-                      bgcolor='#2E6ED5'
-                      sx={{
-                        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
-                      }}
-                    >
-                      <FlexBox
-                        flexible
-                        fh
-                        br={1}
-                        //   b='0.3em solid white'
-                        //   sx={{ borderRightWidth: '0.15em' }}
-                        sx={{
-                          boxShadow:
-                            'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
-                        }}
-                        p={1}
-                      >
-                        <Typography
-                          variant='h3'
-                          noWrap
-                          sx={{ fontWeight: 750, textTransform: 'uppercase' }}
-                        >
-                          {answer.name}
-                        </Typography>
-                      </FlexBox>
-                      <FlexBox
-                        fixed
-                        fh
-                        ar='1'
-                        br={1}
-                        //   b='0.3em solid white'
-                        //   sx={{ borderLeftWidth: '0.15em' }}
-                        sx={{
-                          boxShadow:
-                            'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
-                        }}
-                        bgcolor='#0C51B2'
-                      >
-                        <Typography
-                          variant='h3'
-                          sx={{ fontWeight: 500, textTransform: 'uppercase' }}
-                        >
-                          {answer.quantity}
-                        </Typography>
-                      </FlexBox>
-                    </FlexRow>
-                  ) : (
-                    <FlexBox
-                      fp
-                      bgcolor='#2E6ED5'
-                      sx={{
-                        boxShadow: 'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
-                      }}
-                    >
-                      {answer && (
-                        <FlexBox
-                          ar='1'
-                          h={0.8}
-                          br='50%'
-                          bgcolor='#0F2C88'
-                          sx={{
-                            boxShadow:
-                              'inset 0 0 1em rgba(0, 0, 0, 0.5), 0 0 0.5em rgba(0, 0, 0, 0.5)',
-                          }}
-                        >
-                          <Typography variant='h2' fontWeight='bold'>
-                            {answer.index + 1}
-                          </Typography>
-                        </FlexBox>
-                      )}
-                    </FlexBox>
-                  )}
+                  <RevealAnimation
+                    isRevealed={answer?.isRevealed}
+                    renderFront={() => renderHiddenAnswer(answer)}
+                    renderBack={() => renderRevealedAnswer(answer)}
+                  />
+                  {/* {answer?.isRevealed ? renderRevealedAnswer(answer) : renderHiddenAnswer(answer)} */}
                 </FlexBox>
               ))}
             </FlexCol>
