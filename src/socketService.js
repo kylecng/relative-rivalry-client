@@ -21,9 +21,13 @@ class SocketService {
 
   connect({ playerId }) {
     if (this.socket?.connected) return
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-    devLog('BACKEND_URL', BACKEND_URL)
-    this.socket = io(BACKEND_URL)
+    const BACKEND_DOMAIN = import.meta.env.VITE_BACKEND_DOMAIN
+    const BACKEND_PORT = import.meta.env.VITE_BACKEND_PORT
+    devLog('BACKEND_DOMAIN', BACKEND_DOMAIN)
+    const backendUrl = `${BACKEND_DOMAIN}${BACKEND_PORT ? `:${BACKEND_PORT}` : ''}`
+
+    devLog('backendUrl', backendUrl)
+    this.socket = io(backendUrl)
 
     this.socket.on('connect', () => {
       devLog('Connected to the server')
