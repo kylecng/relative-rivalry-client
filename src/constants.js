@@ -24,6 +24,6 @@ export const PASS_OR_PLAY = Object.freeze({
 })
 
 export const MAX_STRIKES = 3
-export const NUM_ROUNDS = 2
-
+export const NUM_ROUNDS = 3
 export const NUM_TEAMS = 2
+export const GAME_TIED = 'GAME_TIED'

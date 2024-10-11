@@ -11,7 +11,7 @@ import { IoArrowBack, IoArrowForward, IoRefresh, IoSend } from 'react-icons/io5'
 import { toastMessage } from './common/Toast'
 import { cssRgba } from './common/utils/color'
 import { SocketService } from './socketService'
-import { PASS_OR_PLAY, ROUND_STATUS } from './constants'
+import { GAME_TIED, PASS_OR_PLAY, ROUND_STATUS } from './constants'
 import { FullButton } from './common/Button'
 import RevealText from './common/RevealText'
 import SpeechBubble from './common/SpeechBubble'
@@ -168,7 +168,9 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
         position: 'relative',
       }}
     >
-      {gameWinner && gameWinner === someTeamId && renderWinnerMessage()}
+      {gameWinner &&
+        (gameWinner === someTeamId || gameWinner === GAME_TIED) &&
+        renderWinnerMessage()}
       {!isNil(title) && renderTeamNameFloating(title)}
       {!isNil(someTeamId) && renderTeamInputFloating(someTeamId)}
       <FlexBox fp bgcolor='#2E6ED5' br='15%'>
@@ -519,10 +521,9 @@ export default function Round({ playerId, gameState, playerStates, teamStates, r
     >
       {/* {renderOval()} */}
       <FlexCol fp jc='start' p={10} g={8} zIndex={999} pos='relative'>
-        <FlexRow fw h='10%' jc='space-between' pos='relative'>
+        <FlexRow fw h='10%' jc='end' pos='relative'>
           {renderStrikes()}
           {renderTryAgain()}
-
           <SettingsDialog lobbyId={gameState?.lobbyId || ''} />
         </FlexRow>
         <FlexRow fw h='10%' pos='relative'>
